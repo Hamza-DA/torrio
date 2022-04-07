@@ -1,0 +1,31 @@
+.links{
+    width: 100%;
+    height: auto;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+.links a {
+    flex-shrink: 0;
+    width: 15rem;
+    height: 7rem;
+    background-color: black;
+    color: white;
+    display: flex;
+    gap: .4rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+    line-height: 1.4;
+    transition: .2s ease all;
+}
+.links a:hover{
+    transform: scale(1.1);
+}
+.links a span{
+    background-color: #ee171f;
+    padding: .2rem .5rem;
+    font-size: .8rem;
+}
