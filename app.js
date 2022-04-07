@@ -23,7 +23,7 @@ async function createChilds() {
   movies.map(async (e, i) => {
     const link = document.createElement('a');
     link.className = 'link';
-    link.href = e.link;
+    link.dataset.dataLink = e.link;
     link.textContent = e.name;
     const cat = document.createElement('span');
     cat.textContent = e.type;

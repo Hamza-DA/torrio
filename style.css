@@ -5,7 +5,7 @@
     gap: 2rem;
     flex-wrap: wrap;
 }
-.links a {
+.links div {
     flex-shrink: 0;
     width: 15rem;
     height: 7rem;
@@ -20,11 +20,12 @@
     text-decoration: none;
     line-height: 1.4;
     transition: .2s ease all;
+    cursor: pointer;
 }
-.links a:hover{
+.links div:hover{
     transform: scale(1.1);
 }
-.links a span{
+.links div span{
     background-color: #ee171f;
     padding: .2rem .5rem;
     font-size: .8rem;

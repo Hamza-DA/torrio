@@ -48,9 +48,9 @@
         function createChilds() {
             console.log(movies);
             movies.map((e, i) => {
-                const link = document.createElement('a');
+                const link = document.createElement('div');
                 link.className = 'link';
-                link.href = e.link;
+                link.dataset.dataLink = e.link;
                 link.textContent = e.name;
                 const cat = document.createElement('span');
                 cat.textContent = e.type;
@@ -60,9 +60,12 @@
         }
 
         createChilds();
-
+        function log(str) {
+            var p = document.createElement('p');
+            p.innerHTML = str;
+            document.querySelector('.log').appendChild(p);
+        }
         const client = new WebTorrent();
-        alert(client);
         client.on('error', function (err) {
             console.error('ERROR: ' + err.message);
         });
@@ -70,30 +73,19 @@
         document.querySelector('form').addEventListener('submit', (e) => {
             e.preventDefault(); // Prevent page refresh
             $('.log').innerHTML = '';
-            var torrentId = document.querySelector('form input[name=torrentId]').value;
+            const torrentId = document.querySelector('form input[name=torrentId]').value;
             log('Adding ' + torrentId);
             client.add(torrentId, onTorrent);
         });
         for (let i = 0; i < $$('.link').length; i++) {
             $$('.link')[i].addEventListener('click', (e) => {
-                e.preventDefault();
-                alert(e.target.attributes.href.value);
                 $('.log').innerHTML = '';
-                const torrentId = e.target.attributes.href.value;
+                const torrentId = e.target.dataset.dataLink;
                 log('Adding ' + torrentId);
                 client.add(torrentId, onTorrent);
             });
         }
-        // $$('.link').forEach((l) => {
-        //     l.addEventListener('click', (e) => {
-        //         e.preventDefault();
-        //         alert(e.target.attributes.href.value);
-        //         $('.log').innerHTML = '';
-        //         const torrentId = e.target.attributes.href.value;
-        //         log('Adding ' + torrentId);
-        //         client.add(torrentId, onTorrent);
-        //     });
-        // });
+
 
 
         function onTorrent(torrent) {
@@ -126,11 +118,7 @@
             });
         }
 
-        function log(str) {
-            var p = document.createElement('p');
-            p.innerHTML = str;
-            document.querySelector('.log').appendChild(p);
-        }
+
     </script>
 </body>
 
