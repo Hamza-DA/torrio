@@ -1,36 +1,74 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/style.css">
-    <title>Document</title>
+    <title>WebTorrent video player</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-
-    <form>
-        <label for="torrentId">Download from a magnet link: </label>
-        <input name="torrentId" , placeholder="magnet:"
-            value="magnet:?xt=urn:btih:669BD9DB2EE674D102831D6DC3F9438409A5E3FE&dn=&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=http%3A%2F%2Ftracker.ipv6tracker.ru%3A80%2Fannounce&tr=udp%3A%2F%2Fretracker.hotplug.ru%3A2710%2Fannounce&tr=https%3A%2F%2Ftracker.fastdownload.xyz%3A443%2Fannounce&tr=https%3A%2F%2Fopentracker.xyz%3A443%2Fannounce&tr=http%3A%2F%2Fopen.trackerlist.xyz%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.birkenwald.de%3A6969%2Fannounce&tr=https%3A%2F%2Ft.quic.ws%3A443%2Fannounce&tr=https%3A%2F%2Ftracker.parrotsec.org%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker.supertracker.net%3A1337%2Fannounce&tr=http%3A%2F%2Fgwp2-v19.rinet.ru%3A80%2Fannounce&tr=udp%3A%2F%2Fbigfoot1942.sektori.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcarapax.net%3A6969%2Fannounce&tr=udp%3A%2F%2Fretracker.akado-ural.ru%3A80%2Fannounce&tr=udp%3A%2F%2Fretracker.maxnet.ua%3A80%2Fannounce&tr=udp%3A%2F%2Fbt.dy20188.com%3A80%2Fannounce&tr=http%3A%2F%2F0d.kebhana.mx%3A443%2Fannounce&tr=http%3A%2F%2Ftracker.files.fm%3A6969%2Fannounce&tr=http%3A%2F%2Fretracker.joxnet.ru%3A80%2Fannounce&tr=http%3A%2F%2Ftracker.moxing.party%3A6969%2Fannounce">
-        <button type="submit">Download</button>
-    </form>
-    <div class="links"></div>
-    <h2>Log</h2>
-    <div class="log"></div>
-
+    <section class="links"></section>
+    <div id="hero">
+        <div id="output">
+            <div id="progressBar"></div>
+            <!-- The video player will be added here -->
+        </div>
+        <!-- Statistics -->
+        <div id="status">
+            <div>
+                <span class="show-leech">Downloading </span>
+                <span class="show-seed">Seeding </span>
+                <code>
+            <!-- Informative link to the torrent file -->
+            <a id="torrentLink" href="https://webtorrent.io/torrents/sintel.torrent">sintel.torrent</a>
+          </code>
+                <span class="show-leech"> from </span>
+                <span class="show-seed"> to </span>
+                <code id="numPeers">0 peers</code>.
+            </div>
+            <div>
+                <code id="downloaded"></code>
+                of <code id="total"></code>
+                — <span id="remaining"></span><br />
+                &#x2198;<code id="downloadSpeed">0 b/s</code>
+                / &#x2197;<code id="uploadSpeed">0 b/s</code>
+            </div>
+        </div>
+    </div>
     <!-- Include the latest version of WebTorrent -->
     <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
-    <!-- <script src="./app.js"></script> -->
+
+    <!-- Moment is used to show a human-readable remaining time -->
+    <script src="http://momentjs.com/downloads/moment.min.js"></script>
+
     <script>
+        var torrentId = ''
+
+        var client = new WebTorrent()
+
+        // HTML elements
+        var $body = document.body
+        var $progressBar = document.querySelector('#progressBar')
+        var $numPeers = document.querySelector('#numPeers')
+        var $downloaded = document.querySelector('#downloaded')
+        var $total = document.querySelector('#total')
+        var $remaining = document.querySelector('#remaining')
+        var $uploadSpeed = document.querySelector('#uploadSpeed')
+        var $downloadSpeed = document.querySelector('#downloadSpeed')
+
         const $ = document.querySelector.bind(document);
         const $$ = document.querySelectorAll.bind(document);
+
         const movies = [
             {
-                name: 'Moon Knight S01E02 1080p',
-                link: 'magnet:?xt=urn:btih:59EDC7F44D6D53B2793F283F5D03C983449FC0D7&dn=&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=http%3A%2F%2Ftracker.ipv6tracker.ru%3A80%2Fannounce&tr=udp%3A%2F%2Fretracker.hotplug.ru%3A2710%2Fannounce&tr=https%3A%2F%2Ftracker.fastdownload.xyz%3A443%2Fannounce&tr=https%3A%2F%2Fopentracker.xyz%3A443%2Fannounce&tr=http%3A%2F%2Fopen.trackerlist.xyz%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.birkenwald.de%3A6969%2Fannounce&tr=https%3A%2F%2Ft.quic.ws%3A443%2Fannounce&tr=https%3A%2F%2Ftracker.parrotsec.org%3A443%2Fannounce&tr=udp%3A%2F%2Ftracker.supertracker.net%3A1337%2Fannounce&tr=http%3A%2F%2Fgwp2-v19.rinet.ru%3A80%2Fannounce&tr=udp%3A%2F%2Fbigfoot1942.sektori.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcarapax.net%3A6969%2Fannounce&tr=udp%3A%2F%2Fretracker.akado-ural.ru%3A80%2Fannounce&tr=udp%3A%2F%2Fretracker.maxnet.ua%3A80%2Fannounce&tr=udp%3A%2F%2Fbt.dy20188.com%3A80%2Fannounce&tr=http%3A%2F%2F0d.kebhana.mx%3A443%2Fannounce&tr=http%3A%2F%2Ftracker.files.fm%3A6969%2Fannounce&tr=http%3A%2F%2Fretracker.joxnet.ru%3A80%2Fannounce&tr=http%3A%2F%2Ftracker.moxing.party%3A6969%2Fannounce',
+                name: 'tst 2',
+                link: 'magnet:?xt=urn:btih:c9e15763f722f23e98a29decdfae341b98d53056&dn=Cosmos+Laundromat&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fcosmos-laundromat.torrent',
+                type: 'Show',
+            },
+            {
+                name: 'test',
+                link: 'https://webtorrent.io/torrents/sintel.torrent',
                 type: 'Show',
             },
             {
@@ -44,9 +82,7 @@
                 type: 'Movie',
             },
         ];
-
         function createChilds() {
-            console.log(movies);
             movies.map((e, i) => {
                 const link = document.createElement('div');
                 link.className = 'link';
@@ -60,65 +96,99 @@
         }
 
         createChilds();
-        function log(str) {
-            var p = document.createElement('p');
-            p.innerHTML = str;
-            document.querySelector('.log').appendChild(p);
-        }
-        const client = new WebTorrent();
-        client.on('error', function (err) {
-            console.error('ERROR: ' + err.message);
-        });
 
-        document.querySelector('form').addEventListener('submit', (e) => {
-            e.preventDefault(); // Prevent page refresh
-            $('.log').innerHTML = '';
-            const torrentId = document.querySelector('form input[name=torrentId]').value;
-            log('Adding ' + torrentId);
-            client.add(torrentId, onTorrent);
-        });
         for (let i = 0; i < $$('.link').length; i++) {
             $$('.link')[i].addEventListener('click', (e) => {
-                $('.log').innerHTML = '';
-                const torrentId = e.target.dataset.dataLink;
-                log('Adding ' + torrentId);
-                client.add(torrentId, onTorrent);
+                torrentId = e.target.dataset.dataLink;
+                $('#hero').innerHTML = ''
+                goTorrent()
             });
         }
 
+        // Download the torrent
+        function goTorrent() {
+            console.log('reset');
+            $('#hero').innerHTML = `<div id="output">
+            <div id="progressBar"></div>
+            <!-- The video player will be added here -->
+        </div>
+        <!-- Statistics -->
+        <div id="status">
+            <div>
+                <span class="show-leech">Downloading </span>
+                <span class="show-seed">Seeding </span>
+                <code>
+            <!-- Informative link to the torrent file -->
+            <a id="torrentLink" href="https://webtorrent.io/torrents/sintel.torrent">sintel.torrent</a>
+          </code>
+                <span class="show-leech"> from </span>
+                <span class="show-seed"> to </span>
+                <code id="numPeers">0 peers</code>.
+            </div>
+            <div>
+                <code id="downloaded"></code>
+                of <code id="total"></code>
+                — <span id="remaining"></span><br />
+                &#x2198;<code id="downloadSpeed">0 b/s</code>
+                / &#x2197;<code id="uploadSpeed">0 b/s</code>
+            </div>
+        </div>`
+            client.add(torrentId, function (torrent) {
 
+                // Torrents can contain many files. Let's use the .mp4 file
+                var file = torrent.files.find(function (file) {
+                    return file.name.endsWith('.mp4')
+                })
 
-        function onTorrent(torrent) {
-            log('Got torrent metadata!');
-            // log(
-            //     'Torrent info hash: ' + torrent.infoHash + ' ' +
-            //     '<a href="' + torrent.magnetURI + '" target="_blank">[Magnet URI]</a> ' +
-            //     '<a href="' + torrent.torrentFileBlobURL + '" target="_blank" download="' + torrent.name + '.torrent">[Download .torrent]</a>'
-            // )
+                // Stream the file in the browser
+                file.appendTo('#output')
 
-            // Print out progress every 5 seconds
-            var interval = setInterval(function () {
-                log('Progress: ' + (torrent.progress * 100).toFixed(1) + '%');
-            }, 5000);
+                // Trigger statistics refresh
+                torrent.on('done', onDone)
+                setInterval(onProgress, 500)
+                onProgress()
 
-            torrent.on('done', function () {
-                log('Progress: 100%');
-                clearInterval(interval);
-            });
+                // Statistics
+                function onProgress() {
+                    // Peers
+                    $numPeers.innerHTML = torrent.numPeers + (torrent.numPeers === 1 ? ' peer' : ' peers')
 
-            // Render all files into to the page
-            torrent.files.forEach(function (file) {
-                file.appendTo('.log');
-                // log('(Blob URLs only work if the file is loaded from a server. "http//localhost" works. "file://" does not.)')
-                file.getBlobURL(function (err, url) {
-                    if (err) return log(err.message);
-                    // log('File done.')
-                    // log('<a href="' + url + '">Download full file: ' + file.name + '</a>')
-                });
-            });
+                    // Progress
+                    var percent = Math.round(torrent.progress * 100 * 100) / 100
+                    $progressBar.style.width = percent + '%'
+                    $downloaded.innerHTML = prettyBytes(torrent.downloaded)
+                    $total.innerHTML = prettyBytes(torrent.length)
+
+                    // Remaining time
+                    var remaining
+                    if (torrent.done) {
+                        remaining = 'Done.'
+                    } else {
+                        remaining = moment.duration(torrent.timeRemaining / 1000, 'seconds').humanize()
+                        remaining = remaining[0].toUpperCase() + remaining.substring(1) + ' remaining.'
+                    }
+                    $remaining.innerHTML = remaining
+
+                    // Speed rates
+                    $downloadSpeed.innerHTML = prettyBytes(torrent.downloadSpeed) + '/s'
+                    $uploadSpeed.innerHTML = prettyBytes(torrent.uploadSpeed) + '/s'
+                }
+                function onDone() {
+                    $body.className += ' is-seed'
+                    onProgress()
+                }
+            })
+            // Human readable bytes util
+            function prettyBytes(num) {
+                var exponent, unit, neg = num < 0, units = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+                if (neg) num = -num
+                if (num < 1) return (neg ? '-' : '') + num + ' B'
+                exponent = Math.min(Math.floor(Math.log(num) / Math.log(1000)), units.length - 1)
+                num = Number((num / Math.pow(1000, exponent)).toFixed(2))
+                unit = units[exponent]
+                return (neg ? '-' : '') + num + ' ' + unit
+            }
         }
-
-
     </script>
 </body>
 
